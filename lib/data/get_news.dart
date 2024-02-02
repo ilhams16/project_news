@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class GetNews {
   Future<List<Article>> fetchNews({required String keyword}) async {
     var url =
-        'https://newsapi.org/v2/everything?q=$keyword&language=en&apiKey=4b397c0b925c48649a61b00c6ab69622';
+        'https://newsapi.org/v2/everything?q=$keyword&language=en&apiKey=d5646c6a41fc455abb7a6de16525eb52';
     var response = await http.get(Uri.parse(url));
     var jsonData = jsonDecode(response.body);
     List<Article> newsList = [];

@@ -12,7 +12,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late final TabController _tabController;
-  String keyword = 'business';
+  late TextEditingController _search = TextEditingController();
+  late String keyword = 'business';
   bool fav = false;
   List favs = [];
   late Box box;
@@ -45,7 +46,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             Text(
               "Favorite",
               style: TextStyle(fontSize: 18),
-            )
+            ),
+            Text(
+              "Search",
+              style: TextStyle(fontSize: 18),
+            ),
           ], controller: _tabController),
         ),
         body: TabBarView(
@@ -261,7 +266,163 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ));
                   }
-                })
+                }),
+            Column(
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  // child: Row(
+                  //   children: [
+                  child: TextFormField(
+                    controller: _search,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(), hintText: "Search"),
+                  ),
+                  // IconButton(
+                  //   onPressed: () {},
+                  //   icon: Icon(Icons.search),
+                  //   iconSize: 10,
+                  // )
+                  // ],
+                  // )
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                TextButton(
+                    onPressed: () {
+                      setState(() {
+                        keyword = _search.text.toLowerCase();
+                      });
+                    },
+                    child: Text("Search")),
+                FutureBuilder(
+                    future: GetNews().fetchNews(keyword: keyword),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return SingleChildScrollView(
+                            child: Container(
+                          height: 500,
+                          child: ListView(
+                            children:
+                                List.generate(snapshot.data!.length, (index) {
+                              favs.add(fav);
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => NewsPage(
+                                            url: snapshot.data![index].url,
+                                          )));
+                                },
+                                child: Card(
+                                  margin: const EdgeInsets.only(top: 10),
+                                  child: Column(
+                                    children: [
+                                      Card(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const SizedBox(
+                                              width: 10,
+                                            ),
+                                            Expanded(
+                                                child: Text(
+                                              '${snapshot.data![index].title}',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
+                                            )),
+                                            IconButton(
+                                                onPressed: () {
+                                                  favs[index] = !favs[index];
+                                                  if (favs[index] == true) {
+                                                    setState(() {
+                                                      box.add(FavoriteNews(
+                                                        snapshot
+                                                            .data![index].title,
+                                                        snapshot
+                                                            .data![index].url,
+                                                        snapshot.data![index]
+                                                            .description,
+                                                        snapshot.data![index]
+                                                            .imgUrl,
+                                                        snapshot
+                                                            .data![index].media,
+                                                        snapshot.data![index]
+                                                            .publish,
+                                                        favs[index],
+                                                      ));
+                                                    });
+                                                  } else {
+                                                    setState(() {
+                                                      box.deleteAt(index);
+                                                    });
+                                                  }
+                                                },
+                                                icon: (favs[index] == true)
+                                                    ? const Icon(Icons.favorite)
+                                                    : const Icon(
+                                                        Icons.favorite_outline))
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      Image.network(
+                                        snapshot.data![index].imgUrl.toString(),
+                                        width: double.infinity,
+                                        height: 200,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: 10),
+                                        child: Text(
+                                            '${snapshot.data![index].description}'),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: 10),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                                'Media : ${snapshot.data![index].media}'),
+                                            Expanded(
+                                                child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Text(
+                                                  'Published at ${snapshot.data![index].publish!.substring(0, 10)} ${snapshot.data![index].publish!.substring(11, 16)}'),
+                                            )),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ));
+                      }
+                      return const Center(
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          Text("Loading...")
+                        ],
+                      ));
+                    }),
+              ],
+            )
           ],
         ));
   }
